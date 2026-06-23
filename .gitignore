@@ -1,0 +1,12 @@
+backend/venv/
+backend/app/data/
+backend/outputs/
+
+backend/app/__pycache__/
+backend/app/services/__pycache__/
+
+frontend/node_modules/
+
+*.zip
+*.pyc
+.DS_Store
