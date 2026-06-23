@@ -1,5 +1,4 @@
 KEYWORDS = [
-
     "ai",
     "machine learning",
     "ml",
@@ -10,8 +9,47 @@ KEYWORDS = [
     "nlp",
     "cloud",
     "embedding"
-
 ]
+
+
+def discover_skills(text):
+
+    skills = []
+
+    mapping = {
+
+        "backend":
+        ["api", "backend", "server"],
+
+        "machine_learning":
+        ["ml", "machine learning"],
+
+        "llm":
+        ["llm", "language model"],
+
+        "cloud":
+        ["cloud", "aws"],
+
+        "retrieval":
+        ["retrieval", "ranking"],
+
+        "analytics":
+        ["data", "analytics"]
+
+    }
+
+    for skill, words in mapping.items():
+
+        if any(
+            w in text
+            for w in words
+        ):
+
+            skills.append(
+                skill
+            )
+
+    return skills
 
 
 def score_candidate(candidate, job_text):
@@ -39,15 +77,26 @@ def score_candidate(candidate, job_text):
 
     score = 0
 
+    explain = []
+
     years = profile.get(
         "years_of_experience",
         0
     )
 
-    score += min(
+    exp_score = min(
         years * 3,
         30
     )
+
+    score += exp_score
+
+    if exp_score > 15:
+        explain.append(
+            "Strong experience fit"
+        )
+
+    skill_score = 0
 
     for word in KEYWORDS:
 
@@ -57,31 +106,63 @@ def score_candidate(candidate, job_text):
             word in job_text.lower()
         ):
 
-            score += 8
+            skill_score += 6
+
+    score += skill_score
+
+    if skill_score:
+        explain.append(
+            "Relevant AI skills"
+        )
 
     signals = candidate.get(
         "redrob_signals",
         {}
     )
 
-    score += min(
-
+    github = min(
         signals.get(
             "github_activity_score",
             0
         ),
-
         10
-
     )
 
-    if signals.get(
-        "open_to_work_flag",
-        False
-    ):
-        score += 5
+    score += github
 
-    return round(
-        score,
-        1
+    if github > 3:
+        explain.append(
+            "Strong activity signals"
+        )
+
+    growth = 0
+
+    if years <= 8:
+        growth = 10
+
+    score += growth
+
+    if growth:
+        explain.append(
+            "High growth potential"
+        )
+
+    hidden = discover_skills(
+        combined
     )
+
+    return {
+
+        "score":
+        round(
+            score,
+            1
+        ),
+
+        "hidden_skills":
+        hidden,
+
+        "why":
+        explain[:3]
+
+    }

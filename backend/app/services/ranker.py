@@ -18,6 +18,70 @@ Embeddings
 """
 
 
+def detect_skills(text):
+
+    text = str(text).lower()
+
+    skills = []
+
+    mapping = {
+
+        "AI":
+        ["ai"],
+
+        "Machine Learning":
+        ["ml", "machine learning"],
+
+        "Python":
+        ["python"],
+
+        "Cloud":
+        ["cloud"],
+
+        "LLM":
+        ["llm"],
+
+        "Retrieval":
+        ["retrieval"]
+
+    }
+
+    for label, words in mapping.items():
+
+        if any(
+            w in text
+            for w in words
+        ):
+
+            skills.append(
+                label
+            )
+
+    return skills[:4]
+
+
+def explain_candidate(score):
+
+    why = []
+
+    if score >= 68:
+        why.append(
+            "Strong overall fit"
+        )
+
+    if score >= 65:
+        why.append(
+            "Relevant experience"
+        )
+
+    if score >= 60:
+        why.append(
+            "Good candidate signals"
+        )
+
+    return why[:3]
+
+
 def shortlist_candidates():
 
     data = load_candidates()
@@ -29,6 +93,16 @@ def shortlist_candidates():
         profile = candidate.get(
             "profile",
             {}
+        )
+
+        headline = profile.get(
+            "headline",
+            ""
+        )
+
+        score = score_candidate(
+            candidate,
+            JOB_TEXT
         )
 
         ranked.append({
@@ -44,9 +118,7 @@ def shortlist_candidates():
             ),
 
             "headline":
-            profile.get(
-                "headline"
-            ),
+            headline,
 
             "experience":
             profile.get(
@@ -54,9 +126,16 @@ def shortlist_candidates():
             ),
 
             "score":
-            score_candidate(
-                candidate,
-                JOB_TEXT
+            score,
+
+            "skills":
+            detect_skills(
+                headline
+            ),
+
+            "why":
+            explain_candidate(
+                score
             )
 
         })
