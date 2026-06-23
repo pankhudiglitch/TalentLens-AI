@@ -1,260 +1,108 @@
-import { useEffect, useState } from "react"
-import "./App.css"
+import { useState } from "react";
+import "./App.css";
 
-export default function App(){
+export default function App() {
 
-const [candidates,setCandidates]=useState([])
-const [loading,setLoading]=useState(true)
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-function detectSkills(text){
+  const loadCandidates = async () => {
+    setLoading(true);
 
-if(!text)return[]
+    try {
+      const res = await fetch("http://127.0.0.1:8000/shortlist");
+      const data = await res.json();
 
-const t=text.toLowerCase()
+      setCandidates(data.top_candidates || []);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const skills=[]
+  function detectSkills(text) {
+    if (!text) return [];
 
-if(
-t.includes("ai")
-)
-skills.push("AI")
+    const t = text.toLowerCase();
+    const skills = [];
 
-if(
-t.includes("ml")
-||
-t.includes("machine learning")
-)
-skills.push(
-"Machine Learning"
-)
+    if (t.includes("ai")) skills.push("AI");
+    if (t.includes("ml") || t.includes("machine learning")) skills.push("Machine Learning");
+    if (t.includes("llm")) skills.push("LLM");
+    if (t.includes("cloud")) skills.push("Cloud");
+    if (t.includes("python")) skills.push("Python");
 
-if(
-t.includes("llm")
-)
-skills.push(
-"LLM"
-)
+    return skills;
+  }
 
-if(
-t.includes("cloud")
-)
-skills.push(
-"Cloud"
-)
+  function explain(score) {
+    const out = [];
 
-if(
-t.includes("python")
-)
-skills.push(
-"Python"
-)
+    if (score >= 68) out.push("Strong overall fit");
+    if (score >= 65) out.push("Relevant experience");
+    if (score >= 60) out.push("Good candidate signals");
 
-return skills
+    return out;
+  }
 
-}
+  return (
+    <div className="app">
 
-function explain(score){
+      <h3>AI Talent Intelligence</h3>
 
-const out=[]
+      <h1>TalentLens AI</h1>
 
-if(score>=68)
-out.push(
-"Strong overall fit"
-)
+      <button onClick={loadCandidates} className="btn">
+        Get Shortlisted Candidates
+      </button>
 
-if(score>=65)
-out.push(
-"Relevant experience"
-)
+      <p>Find Top Candidates Ranked By AI</p>
 
-if(score>=60)
-out.push(
-"Good candidate signals"
-)
+      {
+        loading ? (
+          <h2>Loading...</h2>
+        ) : (
+          <div className="cards">
 
-return out
+            {candidates.map((c, index) => (
+              <div className="card" key={c.candidate_id}>
 
-}
+                <div>#{index + 1}</div>
 
-useEffect(()=>{
+                <h2>{c.name}</h2>
 
-async function load(){
+                <p>{c.headline}</p>
 
-try{
+                <div>⭐ {c.score}</div>
 
-const res=
-await fetch(
-"http://127.0.0.1:8000/shortlist"
-)
+                <div>⏳ {c.experience} years</div>
 
-const data=
-await res.json()
+                {detectSkills(c.headline).length > 0 && (
+                  <>
+                    <br />
+                    <b>Detected Skills</b>
+                    <p>
+                      {detectSkills(c.headline).join(" • ")}
+                    </p>
+                  </>
+                )}
 
-setCandidates(
-data.top_candidates||[]
-)
+                <br />
 
-}
+                <b>Why Ranked</b>
 
-catch(err){
+                {explain(c.score).map((x) => (
+                  <div key={x}>✓ {x}</div>
+                ))}
 
-console.log(err)
+              </div>
+            ))}
 
-}
+          </div>
+        )
+      }
 
-finally{
-
-setLoading(false)
-
-}
-
-}
-
-load()
-
-},[])
-
-return(
-
-<div className="app">
-
-<h3>
-AI Talent Intelligence
-</h3>
-
-<h1>
-TalentLens AI
-</h1>
-
-<p>
-Find Top Candidates Ranked By AI
-</p>
-
-{
-
-loading
-
-?
-
-<h2>
-Loading...
-</h2>
-
-:
-
-<div className="cards">
-
-{
-
-candidates.map((c,index)=>(
-
-<div
-className="card"
-key={c.candidate_id}
->
-
-<div>
-
-#{index+1}
-
-</div>
-
-<h2>
-
-{c.name}
-
-</h2>
-
-<p>
-
-{c.headline}
-
-</p>
-
-<div>
-
-⭐ {c.score}
-
-</div>
-
-<div>
-
-⏳ {c.experience} years
-
-</div>
-
-{
-
-detectSkills(
-c.headline
-).length>0
-
-&&
-
-<>
-
-<br/>
-
-<b>
-Detected Skills
-</b>
-
-<p>
-
-{
-
-detectSkills(
-c.headline
-).join(
-" • "
-)
-
-}
-
-</p>
-
-</>
-
-}
-
-<br/>
-
-<b>
-
-Why Ranked
-
-</b>
-
-{
-
-explain(
-c.score
-).map((x)=>(
-
-<div
-key={x}
->
-
-✓ {x}
-
-</div>
-
-))
-
-}
-
-</div>
-
-))
-
-}
-
-</div>
-
-}
-
-</div>
-
-)
-
+    </div>
+  );
 }
