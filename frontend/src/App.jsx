@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import { mockResult } from "./mockData";
 
 export default function App() {
 
@@ -7,19 +8,24 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   const loadCandidates = async () => {
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/shortlist");
-      const data = await res.json();
+  try {
+    const converted = mockResult.rankedCandidates.map((c, idx) => ({
+      candidate_id: idx + 1,
+      name: c.name,
+      headline: c.headline,
+      score: c.score,
+      experience: c.experience
+    }));
 
-      setCandidates(data.top_candidates || []);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setCandidates(converted);
+  } catch (err) {
+    console.log(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   function detectSkills(text) {
     if (!text) return [];
